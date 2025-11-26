@@ -100,11 +100,7 @@ def stationarity_measure(x: np.ndarray, params: GameParams) -> float:
     return np.max(np.abs(g))
 
 
-# ============================
 # Fairness metrics
-# ============================
-
-
 def gini_coefficient(v: np.ndarray) -> float:
     v = np.asarray(v)
     if np.allclose(v, 0):
@@ -170,7 +166,7 @@ def solve_ne_lambda0(
 ) -> np.ndarray:
     """
     Solve the game once with λ=0 via GP, to get X_free.
-    This is only used to compute C = 0.95 * X_free.
+    C = 0.95 * X_free
     """
     rng = np.random.default_rng(seed)
     x0 = eps * (1.0 + 1e-3 * rng.normal(size=N))
@@ -182,7 +178,7 @@ def solve_ne_lambda0(
         w=w,
         gamma=gamma,
         tau=tau,
-        C=1.0,  # dummy; lam=0 => no effect
+        C=1.0,  # dummy
         lam=0.0,
         eps=eps,
     )
@@ -240,11 +236,7 @@ def build_game_params_for_experiment(
     return params
 
 
-# ============================
 # Best Response (BR) utilities
-# ============================
-
-
 def br_positive_root_newton_bisect(
     i: int,
     x: np.ndarray,
@@ -503,7 +495,7 @@ def plot_curves_for_instance(br_result: RunResult, gp_result: RunResult, prefix:
     plt.title(
         f"Stationarity vs Iter (N={br_result.N}, tau={br_result.tau}, seed={br_result.seed})"
     )
-    plt.yscale("log")  
+    plt.yscale("log")
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"{prefix}_stat_vs_iter.png", dpi=200)
@@ -551,7 +543,7 @@ def run_experiments():
     taus = [0.1, 0.3, 0.6]
     lam = 10.0
     eps = 1e-6
-    seeds = [0, 1, 2, 3, 4]
+    seeds = [0, 1, 2, 3, 5]
 
     gp_eta = 5e-3
     stat_eps = 1e-6
@@ -601,16 +593,20 @@ def run_experiments():
                     f"stat={gp_result.stationarity:.2e}"
                 )
 
-                if seed ==1:
+                if seed == 1:
                     prefix = f"results/N{N}_tau{tau}_seed{seed}"
                     plot_curves_for_instance(br_result, gp_result, prefix)
 
-    # ---------------- Summary: 加上 fairness 平均值 ----------------
+    # Summary
     print("\n================ Summary (mean over seeds) ================")
     for N in Ns:
         for tau in taus:
             for algo in ["BR", "GP"]:
-                sub = [r for r in all_results if r.N == N and r.tau == tau and r.algo == algo]
+                sub = [
+                    r
+                    for r in all_results
+                    if r.N == N and r.tau == tau and r.algo == algo
+                ]
                 if not sub:
                     continue
                 iters_mean = np.mean([r.iters for r in sub])
@@ -626,18 +622,17 @@ def run_experiments():
 
                 print(
                     f"Algo={algo}, N={N:3d}, tau={tau:.1f}: "
-                    f"conv_rate={conv_rate:.2f}, "
+                    # f"conv_rate={conv_rate:.2f}, "
                     f"iters_mean={iters_mean:.1f}, "
                     f"time_mean={time_mean:.4f}, "
                     f"stat_mean={stat_mean:.2e}, "
                     f"phi_mean={pot_mean:.4e}, "
-                    f"var_mean={var_mean:.4e}, "
+                    # f"var_mean={var_mean:.4e}, "
                     f"gini_mean={gini_mean:.4f}, "
-                    f"corr_mean={corr_mean:.4f}"
+                    # f"corr_mean={corr_mean:.4f}"
                 )
 
     return all_results
-
 
 
 if __name__ == "__main__":
